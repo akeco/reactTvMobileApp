@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "name": "DisabledScreenModal",
+  "main": "./DisabledScreenModal.js"
+}

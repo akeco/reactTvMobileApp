@@ -121,6 +121,7 @@ class LoginScreen extends Component {
                 >
                     <Text>LOGIN</Text>
                 </Button>
+
                 <TouchableHighlight
                     onPress={()=>{
                         Actions.push("register");

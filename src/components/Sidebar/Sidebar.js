@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import JokerModal from '../JokerModal';
+import AccountModal from '../AccountModal';
 import axios from 'axios';
 import { Actions } from 'react-native-router-flux';
 import {
@@ -31,17 +32,25 @@ export default class Sidebar extends Component {
     constructor(props){
         super(props);
         this.state = {
-            modalVisible: false,
-            code: ''
+            JokerModalVisible: false,
+            AccountModalVisible: false,
         };
     }
 
-    openModal = () => {
-        this.setState({modalVisible:true});
+    openJokerModal = () => {
+        this.setState({JokerModalVisible:true});
     };
 
-    closeModal = () => {
-        this.setState({modalVisible:false});
+    closeJokerModal = () => {
+        this.setState({JokerModalVisible:false});
+    };
+
+    openAccountModal = () => {
+        this.setState({AccountModalVisible:true});
+    };
+
+    closeAccountModal = () => {
+        this.setState({AccountModalVisible:false});
     };
 
     logOut = () => {
@@ -50,7 +59,7 @@ export default class Sidebar extends Component {
     };
 
     render(){
-        const {modalVisible, code} = this.state;
+        const {JokerModalVisible, AccountModalVisible} = this.state;
         return (
             <View style={styles.sidebarWrapper}>
                 <View style={styles.statusBar} />
@@ -64,9 +73,7 @@ export default class Sidebar extends Component {
                 <Container>
                     <Content>
                         <List>
-                            <ListItem icon button onPress={()=>{
-                                Actions.push("userAccount");
-                            }}>
+                            <ListItem icon button onPress={this.openAccountModal}>
                                 <Left>
                                     <Icon name="ios-contact-outline" size={25} />
                                 </Left>
@@ -74,7 +81,7 @@ export default class Sidebar extends Component {
                                     <Text>Korisnicki racun</Text>
                                 </Body>
                             </ListItem>
-                            <ListItem icon button onPress={this.openModal}>
+                            <ListItem icon button onPress={this.openJokerModal}>
                                 <Left>
                                     <Icon name="ios-barcode-outline" size={25} />
                                 </Left>
@@ -101,40 +108,12 @@ export default class Sidebar extends Component {
                         </List>
                     </Content>
                 </Container>
-                <Modal
-                    visible={modalVisible}
-                    animationType={'slide'}
-                    onRequestClose={this.closeModal}
-                >
-                    <View style={styles.modalContainer}>
-                        <View style={styles.innerContainer}>
-                            <TextInput
-                                name="code"
-                                placeholderTextColor="rgba(0,0,0,0.7)"
-                                placeholder="Unesi joker code"
-                                style={styles.inputText}
-                                value={code}
-                                onChangeText={(code) => {
-                                    this.setState({
-                                        code
-                                    });
-                                }}
-                            />
-                            <Button
-                                onPress={() => this.closeModal()}
-                                style={styles.buttonConfirm}
-                            >
-                                <Text style={styles.buttonText}>{'Potvrdi'.toUpperCase()}</Text>
-                            </Button>
-                            <Button
-                                onPress={() => this.closeModal()}
-                                style={styles.buttonClose}
-                            >
-                                <Text style={styles.buttonText}>{'Zatvori'.toUpperCase()}</Text>
-                            </Button>
-                        </View>
-                    </View>
-                </Modal>
+                {
+                    JokerModalVisible && <JokerModal closeJokerModal={this.closeJokerModal} {...this.state} />
+                }
+                {
+                    AccountModalVisible && <AccountModal closeAccountModal={this.closeAccountModal} {...this.state} />
+                }
             </View>
         );
     }

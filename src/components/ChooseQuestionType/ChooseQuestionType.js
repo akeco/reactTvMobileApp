@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {
-    manageJoker
+    manageJoker,
+    addToUsedJokers
 } from '../../redux/actions';
 import {
     View,
@@ -28,8 +29,17 @@ class ChooseQuestionType extends Component {
         };
     }
 
-    handleButtonAnswer = () => {
-
+    handleJokerClick = () => {
+        const {manageJoker, addToUsedJokers, jokers, user: {userId, id}} = this.props;
+        if(jokers > 0 && userId && id){
+            manageJoker(jokers-1, userId).then(()=>{
+                addToUsedJokers();
+            });
+            this.props.answerQuestion("joker");
+            this.setState({
+                selected: true
+            });
+        }
     };
 
     renderButtons = () => {
@@ -69,7 +79,6 @@ class ChooseQuestionType extends Component {
     };
 
     showJokerButton = () => {
-        const {manageJoker} = this.props;
         const {selected} = this.state;
         const disabledBtn = (selected) ? true: false;
         const btnStyle = (selected) ? styles.disabledButtons : styles.jokerButton;
@@ -80,12 +89,7 @@ class ChooseQuestionType extends Component {
                 block
                 iconLeft
                 style={btnStyle}
-                onPress={()=>{
-                    manageJoker(false);
-                    this.setState({
-                        selected: true
-                    });
-                }}
+                onPress={this.handleJokerClick}
             >
                 <Icon name='ios-heart' color="white" size={20} />
                 <Text>ISKORISTI JOKER</Text>
@@ -119,13 +123,16 @@ ChooseQuestionType.propTypes = {
 
 function matchDispatchToProps(dispatch) {
     return bindActionCreators({
-        manageJoker
+        manageJoker,
+        addToUsedJokers
     }, dispatch);
 }
 
 function mapStateToProps(state) {
     return {
-        socket: state.socket
+        socket: state.socket,
+        jokers: state.jokers,
+        user: state.user,
     }
 }
 

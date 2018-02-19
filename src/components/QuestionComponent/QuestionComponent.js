@@ -104,7 +104,7 @@ class QuestionComponent extends Component {
 
 
     answerQuestion = (data) => {
-        const {socket, user, addAnswersStack, answersStack, score, addToScore} = this.props,
+        const {socket, user, addAnswersStack, answersStack, usedJokers, jokers} = this.props,
             {rightAnswer, questionType} = this.state;
 
         if(questionType === "write"){
@@ -116,7 +116,7 @@ class QuestionComponent extends Component {
 
             var infoText = null;
             const time = timeDiff.getSeconds();
-            if(data && similarPercent >= 0.5){
+            if(data && data !== 'joker' && similarPercent >= 0.5){
                 if(time > 0 && time <= 3) infoText = "Odlično, vaš odgovor je tačan. Brzo ste odgovorili.";
                 else if(time > 3 && time <= 6 ) infoText = "Bravo, tačan odgovor, ovo je baš bilo lako zar ne.";
                 else infoText = "Tačan odgovor.";
@@ -144,7 +144,7 @@ class QuestionComponent extends Component {
                 };
                 socket.emit("send-answer", results);
             }
-            else if(data && similarPercent < 0.5) {
+            else if(data && data !== 'joker' && similarPercent < 0.5) {
                 if(time > 0 && time <= 3) infoText = "Žao nam je, odgovor nije tačan. Požurili ste.";
                 else if(time > 3 && time <= 6 ) infoText = "Odgovor je netačan, budite oprezni i dobro poslušajte pjesme.";
                 else infoText = "Netačan odgovor.";
@@ -165,7 +165,7 @@ class QuestionComponent extends Component {
 
             var infoText = null;
             const time = timeDiff.getSeconds();
-            if(data == rightAnswer){
+            if(data && data !== 'joker' && data == rightAnswer){
                 if(time > 0 && time <= 3) infoText = "Odlično, vaš odgovor je tačan. Brzo ste odgovorili.";
                 else if(time > 3 && time <= 6 ) infoText = "Bravo, tačan odgovor, ovo je baš bilo lako zar ne.";
                 else infoText = "Tačan odgovor.";
@@ -194,10 +194,13 @@ class QuestionComponent extends Component {
                 socket.emit("send-answer", results);
 
             }
-            else if(data && data != rightAnswer) {
+            else if(data && data !== 'joker' && data != rightAnswer) {
                 if(time > 0 && time <= 3) infoText = "Žao nam je, odgovor nije tačan. Požurili ste.";
                 else if(time > 3 && time <= 6 ) infoText = "Odgovor je netačan, budite oprezni i dobro poslušajte pjesme.";
                 else infoText = "Netačan odgovor.";
+            }
+            else if(data && data === 'joker') {
+                infoText = `Iskoristili ste joker. Preostalo vam je još ${usedJokers} za danas!`;
             }
 
             this.setState({
@@ -231,7 +234,7 @@ class QuestionComponent extends Component {
                 text: this.state.infoText || 'Propustili ste pitanje. Nažalost zavržili ste igru za danas.',
                 position: 'bottom',
                 duration: 3000,
-                type: (this.state.success) ? 'success' : 'danger'
+                type: (this.state.success || this.state.answered === 'joker') ? 'success' : 'danger'
             });
 
             setTimeout(()=> {
@@ -259,7 +262,7 @@ class QuestionComponent extends Component {
                     case 20: message = "Čestitamo, svih 20 tačnih odgovora u nizu!";
                         break;
                 }
-                if(counter == 3 || counter == 5 || counter == 10 || counter == 15 || counter == 20){
+                if(this.state.answered !== 'joker' && counter == 3 || counter == 5 || counter == 10 || counter == 15 || counter == 20){
                     Toast.show({
                         text: message,
                         position: 'bottom',
@@ -268,9 +271,11 @@ class QuestionComponent extends Component {
                 }
             }, 4000);
 
-            if(!this.state.answered) addAnswersStack(false);
+            //if(!this.state.answered) addAnswersStack(false);
             if(this.state.tempScore) addToScore(this.state.tempScore);
-            if(!this.state.success) socket.emit("disable-user", user.userId);
+            if(this.state.answered !== 'joker' && !this.state.success) {
+                socket.emit("disable-user", user.userId);
+            }
 
             this.setState({
                 questionType: null,
@@ -340,7 +345,8 @@ function mapStateToProps(state) {
         user: state.user,
         answersStack: state.answersStack,
         score: state.score,
-        jokers: state.jokers
+        jokers: state.jokers,
+        usedJokers: state.usedJokers,
     }
 }
 

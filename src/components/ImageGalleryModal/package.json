@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "name": "ImageGalleryModal",
+  "main": "./ImageGalleryModal.js"
+}

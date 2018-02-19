@@ -75,7 +75,7 @@ class RegisterScreen extends Component {
                             }
 
                         }).catch((error)=>{
-                            console.info("FETCH TOKEN ERROR", error);
+                        console.info("FETCH TOKEN ERROR", error);
                     });
                 }
             }).catch((error)=>{

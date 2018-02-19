@@ -1,6 +1,8 @@
-import { ADD_SOCKET } from '../actions/events';
+import {
+    ADD_SOCKET,
+} from '../actions/events';
 
-const addSocket = (state = null, action) => {
+const socket = (state = null, action) => {
     switch (action.type) {
         case ADD_SOCKET:
             return action.data;
@@ -9,4 +11,4 @@ const addSocket = (state = null, action) => {
     }
 };
 
-export default addSocket;
+export default socket;

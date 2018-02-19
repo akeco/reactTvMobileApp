@@ -1,15 +1,17 @@
 import {
-    MANAGE_JOKER
+    MANAGE_JOKER,
+    INITIAL_JOKER_CALL
 } from '../actions/events';
 
-const user = (state = 5, action) => {
+const jokers = (state = 0, action) => {
     switch (action.type) {
+        case INITIAL_JOKER_CALL:
+            return action.payload;
         case MANAGE_JOKER:
-            if(!action.data && state != 0) return state - 1;
-            else return state + 1;
+            return action.payload.data.jokers;
         default:
             return state;
     }
 };
 
-export default user;
+export default jokers;

@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "name": "JokerModal",
+  "main": "./JokerModal.js"
+}
