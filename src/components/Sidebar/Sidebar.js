@@ -1,8 +1,11 @@
 import React, {Component} from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {
     View,
     ImageBackground,
     AsyncStorage,
+    Image,
     Modal,
     TextInput
 } from 'react-native';
@@ -24,16 +27,17 @@ import {
     Body,
     Right,
     Switch,
+    Toast,
+    Spinner
 } from 'native-base';
 
 import styles from './styles';
 
-export default class Sidebar extends Component {
+class Sidebar extends Component {
     constructor(props){
         super(props);
         this.state = {
             JokerModalVisible: false,
-            AccountModalVisible: false,
         };
     }
 
@@ -54,55 +58,69 @@ export default class Sidebar extends Component {
     };
 
     logOut = () => {
+        const {socket} = this.props;
         AsyncStorage.removeItem("quizUser");
+        socket.emit('forceDisconnect');
         Actions.push("rootLogin");
     };
 
     render(){
         const {JokerModalVisible, AccountModalVisible} = this.state;
+        const {avatarURL} = this.props;
         return (
             <View style={styles.sidebarWrapper}>
-                <View style={styles.statusBar} />
                 <ImageBackground
                     style={styles.imageWrapper}
                     resizeMode="cover"
                     source={require('../../images/blue-background.png')}
                 >
-                    <Icon name="ios-contact" color="white" size={85} />
+                    {
+                        avatarURL &&
+                        <View style={styles.avatarView}>
+                            {
+                                !avatarURL.approved && <View style={styles.imageLoader} ><Spinner color='white' /></View>
+                            }
+                            <Image
+                                source={{uri: avatarURL.url}}
+                                style={styles.avatarImage}
+                            />
+                        </View> ||
+                        <Icon name="ios-contact" color="white" size={85} />
+                    }
                 </ImageBackground>
                 <Container>
                     <Content>
                         <List>
                             <ListItem icon button onPress={this.openAccountModal}>
                                 <Left>
-                                    <Icon name="ios-contact-outline" size={25} />
+                                    <Icon style={styles.text} name="ios-contact-outline" size={25} />
                                 </Left>
                                 <Body>
-                                    <Text>Korisnicki racun</Text>
+                                    <Text style={styles.text}>Korisnički račun</Text>
                                 </Body>
                             </ListItem>
                             <ListItem icon button onPress={this.openJokerModal}>
                                 <Left>
-                                    <Icon name="ios-barcode-outline" size={25} />
+                                    <Icon style={styles.text} name="ios-barcode-outline" size={25} />
                                 </Left>
                                 <Body>
-                                    <Text>Joker Kodovi</Text>
+                                    <Text style={styles.text}>Joker Kodovi</Text>
                                 </Body>
                             </ListItem>
                             <ListItem icon button onPress={()=>{}}>
                                 <Left>
-                                    <Icon name="ios-help-circle-outline" size={25} />
+                                    <Icon style={styles.text} name="ios-help-circle-outline" size={25} />
                                 </Left>
                                 <Body>
-                                    <Text>Uputstva</Text>
+                                    <Text style={styles.text}>Uputstva</Text>
                                 </Body>
                             </ListItem>
                             <ListItem icon button onPress={this.logOut}>
                                 <Left>
-                                    <Icon name="ios-log-out-outline" size={25} />
+                                    <Icon style={styles.text} name="ios-log-out-outline" size={25} />
                                 </Left>
                                 <Body>
-                                    <Text>Izlaz</Text>
+                                    <Text style={styles.text}>Izlaz</Text>
                                 </Body>
                             </ListItem>
                         </List>
@@ -112,9 +130,19 @@ export default class Sidebar extends Component {
                     JokerModalVisible && <JokerModal closeJokerModal={this.closeJokerModal} {...this.state} />
                 }
                 {
-                    AccountModalVisible && <AccountModal closeAccountModal={this.closeAccountModal} {...this.state} />
+                    AccountModalVisible && <AccountModal closeAccountModal={this.closeAccountModal}{...this.state}/>
                 }
             </View>
         );
     }
 }
+
+
+export default connect(function (state) {
+    return {
+        avatarURL: state.avatarURL,
+        socket: state.socket
+    }
+})(Sidebar);
+
+

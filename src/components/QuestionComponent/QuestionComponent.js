@@ -307,7 +307,7 @@ class QuestionComponent extends Component {
         const {score, jokers} = this.props;
         const {showSimilarity, similarPercent} = this.state;
         return (
-            <Root>
+            <Container>
                 <View style={styles.scoreWrapper}>
                     <Left>
                         <Text style={styles.scoreText}>Bodovi: {score}</Text>
@@ -326,7 +326,7 @@ class QuestionComponent extends Component {
                     </Right>
                 </View>
                 {this.renderQuestionType()}
-            </Root>
+            </Container>
         )
     }
 }

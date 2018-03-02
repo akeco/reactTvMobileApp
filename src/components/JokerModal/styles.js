@@ -11,6 +11,13 @@ export default StyleSheet.create({
         height: 23,
         backgroundColor: '#0096A6'
     },
+    header: {
+        backgroundColor: '#00BBD3'
+    },
+    headerTitle: {
+        fontSize: 14,
+        color: 'white'
+    },
     account: {
        width: '100%',
         height: 150,
@@ -56,5 +63,33 @@ export default StyleSheet.create({
         height: 43,
         marginBottom: 15,
         paddingLeft: 10
+    },
+    item: {
+        borderColor: 'transparent',
+    },
+    inputText: {
+        backgroundColor: 'white',
+        width: '100%',
+        height: 43,
+        fontSize: 14,
+        marginBottom: 10,
+        paddingLeft: 10,
+        borderColor: 'transparent',
+        borderRadius: 2
+    },
+    leftIcon: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        left: 15
+    },
+    headerBody: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        height: '100%',
+        justifyContent: 'center'
     }
 });

@@ -4,20 +4,31 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {
     addSocket,
+    addUser,
     initialJokerCall,
-    initialUsedJokers
-} from '../../redux/actions/index';
+    initialUsedJokers,
+    addAvatarURL
+} from '../../redux/actions';
 import axios from 'axios';
+import { Actions } from 'react-native-router-flux';
 import {
     View,
     Platform,
-    AsyncStorage
+    AsyncStorage,
+    StatusBar
 } from 'react-native';
 import { Spinner } from 'native-base';
 
 import styles from './styles';
 
 const SERVER_URL = __DEV__ ?
+    Platform.select({
+        ios: "https://quiz-redis-engine.herokuapp.com",
+        android: "https://quiz-redis-engine.herokuapp.com"
+    }) :
+    "https://quiz-redis-engine.herokuapp.com";
+
+const LOCAL_SERVER_URL = __DEV__ ?
     Platform.select({
         ios: "http://localhost:8086",
         android: "http://10.0.3.2:8086"
@@ -26,28 +37,31 @@ const SERVER_URL = __DEV__ ?
 
 const API_URL = __DEV__ ?
     Platform.select({
-        ios: "http://localhost:3000",
-        android: "http://10.0.3.2:3000"
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
     }) :
-    "https://my-production-url.com";
+    "https://quizapp-api.herokuapp.com";
 
 export default SocketConnectionHoC = (CustomComponent) => (
     connect(mapStateToProps, matchDispatchToProps)(class SocketConnectionHoC extends Component{
         constructor(props){
             super(props);
             this.state = {
-                socket: null
+                socket: null,
+                emailVerified: false
             }
         }
 
         shouldComponentUpdate(nextProps, nextState){
             if(nextState.socket != this.state.socket) return true;
+            if(nextState.emailVerified != this.state.emailVerified) return true;
             return false;
         }
 
         componentDidMount(){
-            const {addSocket, user, initialJokerCall, initialUsedJokers} = this.props;
-            this.socket = io(SERVER_URL);
+            const {addSocket, user, initialJokerCall, initialUsedJokers, addAvatarURL, addUser} = this.props;
+            //this.socket = io(SERVER_URL);
+            this.socket = io(LOCAL_SERVER_URL);
             this.socket.on("connect", () => {
                 addSocket(this.socket);
                 this.setState({
@@ -59,12 +73,31 @@ export default SocketConnectionHoC = (CustomComponent) => (
                 if(user){
                     user = JSON.parse(user);
                     if(user.id && user.userId){
+                        addUser(user);
                         axios.get(`${API_URL}/api/UserModels/${user.userId}?query[fields][jokers]`)
                             .then((response)=>{
-                                initialJokerCall(response.data.jokers);
-                                initialUsedJokers((response.data.jokers >= 10) ? 9 : response.data.jokers - 1 );
+                            if(response && response.data){
+                                if(response.data.emailVerified){
+                                    this.setState({
+                                        emailVerified: true
+                                    });
+                                    if(response.data.jokers) {
+                                        initialJokerCall(response.data.jokers);
+                                        initialUsedJokers((response.data.jokers >= 10) ? 9 : response.data.jokers - 1 );
+                                    }
+                                    if(response.data.temporaryAvatarURL) addAvatarURL({
+                                        approved: false,
+                                        url: response.data.temporaryAvatarURL
+                                    });
+                                    else if(response.data.avatarURL) addAvatarURL({
+                                        approved: true,
+                                        url: response.data.avatarURL
+                                    });
+                                }
+                                else Actions.push("emailVerifyScreen");
+                            }
                             }).catch((error)=>{
-                            console.info("JOKER ERROR", error);
+                                console.info("JOKER ERROR", error);
                         });
                     }
                 }
@@ -74,9 +107,14 @@ export default SocketConnectionHoC = (CustomComponent) => (
         }
 
 
+        componentWillUnmount(){
+            this.socket.disconnect();
+        }
+
+
         render() {
-            const {socket} = this.state;
-            if(socket) {
+            const {socket, emailVerified} = this.state;
+            if(socket && emailVerified) {
                 return (
                     <View>
                         <CustomComponent/>
@@ -84,8 +122,15 @@ export default SocketConnectionHoC = (CustomComponent) => (
                 );
             }
             else return (
-                <View style={styles.loaderWrapper}>
-                    <Spinner color='blue' />
+                <View class={styles.emptyWrapper}>
+                    <StatusBar
+                        barStyle="light-content"
+                        backgroundColor="transparent"
+                        translucent
+                    />
+                    <View style={styles.loaderWrapper}>
+                        <Spinner color='white' />
+                    </View>
                 </View>
             );
         }
@@ -95,8 +140,10 @@ export default SocketConnectionHoC = (CustomComponent) => (
 function matchDispatchToProps(dispatch) {
     return bindActionCreators({
         addSocket,
+        addUser,
         initialJokerCall,
-        initialUsedJokers
+        initialUsedJokers,
+        addAvatarURL
     }, dispatch);
 }
 

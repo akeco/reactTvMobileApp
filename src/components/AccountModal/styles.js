@@ -14,9 +14,12 @@ export default StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center'
     },
-    statusBar: {
-        height: 23,
-        backgroundColor: '#0096A6'
+    header: {
+        display: 'flex',
+        paddingLeft: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#00BBD3'
     },
     account: {
        width: '100%',
@@ -52,22 +55,51 @@ export default StyleSheet.create({
         height: '100%',
     },
     header: {
-        backgroundColor: '#00BBD3',
-        height: 50,
-        justifyContent: 'center',
-        paddingLeft: 20
+        backgroundColor: '#00BBD3'
+    },
+    headerTitle: {
+        fontSize: 14,
+        color: 'white'
     },
     avatarView: {
-        width: 100,
-        height: 100,
+        width: 115,
+        height: 115,
         borderRadius: 100,
-        borderColor: 'white',
+        borderColor: '#00A5B9',
         borderStyle: 'solid',
-        borderWidth: 3,
-        overflow: 'hidden'
+        borderWidth: 4,
+        overflow: 'hidden',
+        position: 'relative'
     },
     avatarImage: {
         width: '100%',
         height: '100%',
+    },
+    imageLoader: {
+        backgroundColor: 'rgba(0,150,166,0.8)',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        zIndex: 999,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    text: {
+        color: 'rgba(0,0,0,0.75)'
+    },
+    leftIcon: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        left: 15
+    },
+    headerBody: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        height: '100%',
+        justifyContent: 'center'
     }
 });

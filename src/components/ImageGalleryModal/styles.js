@@ -52,9 +52,60 @@ export default StyleSheet.create({
         height: '100%',
     },
     header: {
-        backgroundColor: '#00BBD3',
-        height: 50,
+        backgroundColor: '#00BBD3'
+    },
+    headerTitle: {
+        fontSize: 14,
+       color: 'white'
+    },
+    modalPrompt: {
+        backgroundColor: 'white',
+        borderRadius: 3
+    },
+    modalTitle: {
+        padding: 10,
+        borderBottomColor: 'rgba(0,0,0,0.1)',
+        borderBottomWidth: 1
+    },
+    titleText: {
+       fontSize: 20
+    },
+    modalBody: {
+        padding: 10,
+        paddingTop: 20,
+        paddingBottom: 20
+    },
+    buttonWrapper: {
+        display: 'flex',
+        flexDirection: 'row',
+        padding: 10,
+    },
+    discardButton: {
         justifyContent: 'center',
-        paddingLeft: 20
+        alignItems: 'center',
+        flexGrow: 1,
+        marginRight: 5
+    },
+    confirmButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexGrow: 1,
+        marginLeft: 5,
+        backgroundColor: '#0096A6'
+    },
+    leftIcon: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        justifyContent: 'center',
+        height: '100%',
+        left: 15
+    },
+    headerBody: {
+        position: 'absolute',
+        bottom: 0,
+        alignSelf: 'center',
+        height: '100%',
+        justifyContent: 'center'
     }
 });

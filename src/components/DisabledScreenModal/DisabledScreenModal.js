@@ -35,10 +35,11 @@ export default  DisabledScreenModal = ({disabledScreen, user}) => {
         >
             <StatusBar
                 barStyle="light-content"
+                backgroundColor="transparent"
             />
             <View style={styles.statusBar} />
             <View style={styles.modalContainer}>
-                <Icon name="ios-contact" color="white" size={85}/>
+                <Icon name="md-lock" color="white" size={85}/>
                 <Text style={styles.messageText}>Korisnik <Text style={styles.username}>{user && user.username}</Text> je već aktivan na drugom mobilnom uređaju!</Text>
                 <Text style={styles.smallText}>Dva korisnika ne mogu koristiti isti korisnički račun u isto vrijeme!</Text>
             </View>

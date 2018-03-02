@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {
     View,
-    StatusBar,
+    TouchableOpacity,
     Modal,
-    TextInput
+    Platform
 } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -23,6 +23,8 @@ import {
     Body,
     Right,
     Switch,
+    Item,
+    Input
 } from 'native-base';
 
 import styles from './styles';
@@ -44,34 +46,47 @@ export default class JokerModal extends Component {
                 animationType={'slide'}
                 onRequestClose={this.closeJokerModal}
             >
+                <Header
+                    style={styles.header}
+                    iosBarStyle="light-content"
+                    androidStatusBarColor="#0096A6"
+                    backgroundColor="#00BBD3"
+                >
+                    <Left style={styles.leftIcon}>
+                        <TouchableOpacity onPress={closeJokerModal}>
+                            <Icon
+                                name={Platform.select({
+                                    ios: "ios-arrow-back",
+                                    android: "md-arrow-back"
+                                })}
+                                color="white" size={30}/>
+                        </TouchableOpacity>
+                    </Left>
+                    <Body style={styles.headerBody}>
+                        <Text  style={styles.headerTitle}>JOKER KODOVI</Text>
+                    </Body>
+                </Header>
+
                 <View style={styles.modalContainer}>
-                    <StatusBar
-                        barStyle="dark-content"
-                    />
                     <View style={styles.innerContainer}>
-                        <TextInput
-                            name="code"
-                            placeholderTextColor="rgba(0,0,0,0.7)"
-                            placeholder="Unesi joker code"
-                            style={styles.inputText}
-                            value={code}
-                            onChangeText={(code) => {
-                                this.setState({
-                                    code
-                                });
-                            }}
-                        />
+                        <Item style={styles.item}>
+                            <Input
+                                placeholder="Unesi joker kod"
+                                placeholderTextColor="rgba(0,0,0,0.7)"
+                                value={code}
+                                style={styles.inputText}
+                                onChangeText={(code) => {
+                                    this.setState({
+                                        code
+                                    })
+                                }}
+                            />
+                        </Item>
                         <Button
                             onPress={closeJokerModal}
                             style={styles.buttonConfirm}
                         >
                             <Text style={styles.buttonText}>{'Potvrdi'.toUpperCase()}</Text>
-                        </Button>
-                        <Button
-                            onPress={closeJokerModal}
-                            style={styles.buttonClose}
-                        >
-                            <Text style={styles.buttonText}>{'Zatvori'.toUpperCase()}</Text>
                         </Button>
                     </View>
                 </View>

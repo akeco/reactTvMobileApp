@@ -56,5 +56,30 @@ export default StyleSheet.create({
         height: 43,
         marginBottom: 15,
         paddingLeft: 10
+    },
+    avatarView: {
+        width: 100,
+        height: 100,
+        borderRadius: 100,
+        borderColor: '#00BBD3',
+        borderStyle: 'solid',
+        borderWidth: 4,
+        overflow: 'hidden'
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+    },
+    imageLoader: {
+        backgroundColor: 'rgba(0,150,166,0.8)',
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        zIndex: 999,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    text: {
+       color: 'rgba(0,0,0,0.75)'
     }
 });

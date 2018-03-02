@@ -3,7 +3,8 @@ import {
     View,
     AsyncStorage,
     TouchableOpacity,
-    Platform
+    Platform,
+    StatusBar
 } from 'react-native';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -35,7 +36,8 @@ import {
     TabHeading,
     Left,
     Right,
-    Toast
+    Toast,
+    Root
 } from 'native-base';
 
 import styles from './styles';
@@ -86,10 +88,10 @@ var config = {
 
 const SERVER_URL = __DEV__ ?
     Platform.select({
-        ios: "http://localhost:3000",
-        android: "http://10.0.3.2:3000"
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
     }) :
-    "https://my-production-url.com";
+    "https://quizapp-api.herokuapp.com";
 
 class HomeScreen extends Component {
     constructor(props){
@@ -102,18 +104,21 @@ class HomeScreen extends Component {
 
     componentDidMount(){
         const {user, addUser, socket, addFirebase, firebaseReducer } = this.props;
+
         if(!user){
             AsyncStorage.getItem("quizUser").then((user)=>{
                 if(user){
                     user = JSON.parse(user);
                     if(user.id && user.userId){
-                        addUser(user);
                         socket.emit("join-room", user.userId);
                     }
                 }
             }).catch((err)=>{
                 console.info("Save user to reducer error", err);
             });
+        }
+        else {
+            socket.emit("join-room", user.userId);
         }
 
         if(!firebaseReducer){
@@ -175,6 +180,7 @@ class HomeScreen extends Component {
         }
     };
 
+
     render(){
         const {user} = this.props;
         return (
@@ -185,18 +191,18 @@ class HomeScreen extends Component {
                     onClose={() => this.closeDrawer()}
                 >
                     <Container>
-                        <View style={styles.headerWrapper}>
-                            <Header
-                                style={styles.header}
-                                iosBarStyle="light-content"
-                                hasTabs>
-                                <View style={styles.buttonWrapper}>
-                                    <TouchableOpacity onPress={this.handleSidebarToggle}>
-                                        <Icon name='menu' size={25} color="#fff" />
-                                    </TouchableOpacity>
-                                </View>
-                            </Header>
-                        </View>
+                        <Header
+                            style={styles.header}
+                            iosBarStyle="light-content"
+                            androidStatusBarColor="#0096A6"
+                            hasTabs
+                        >
+                            <View style={styles.buttonWrapper}>
+                                <TouchableOpacity onPress={this.handleSidebarToggle}>
+                                    <Icon name='menu' size={25} color="#fff" />
+                                </TouchableOpacity>
+                            </View>
+                        </Header>
                         <Tabs
                             tabBarUnderlineStyle={{backgroundColor: '#fff'}}
                             onChangeTab={this.fetchResults}

@@ -6,6 +6,8 @@ import score from './score';
 import jokers from './jokers';
 import firebase from './firebase';
 import usedJokers from './usedJokers';
+import avatarURL from './avatarURL';
+import registerDetails from './registerDetails';
 
 const reducers = combineReducers({
     socket,
@@ -14,7 +16,9 @@ const reducers = combineReducers({
     score,
     jokers,
     firebase,
-    usedJokers
+    usedJokers,
+    avatarURL,
+    registerDetails
 });
 
 export default reducers;

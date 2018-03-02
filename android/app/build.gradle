@@ -107,6 +107,16 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
     }
+    signingConfigs {
+            release {
+                if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                    storeFile file(MYAPP_RELEASE_STORE_FILE)
+                    storePassword MYAPP_RELEASE_STORE_PASSWORD
+                    keyAlias MYAPP_RELEASE_KEY_ALIAS
+                    keyPassword MYAPP_RELEASE_KEY_PASSWORD
+                }
+            }
+        }
     splits {
         abi {
             reset()
@@ -119,6 +129,7 @@ android {
         release {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     // applicationVariants are e.g. debug, release
@@ -140,16 +151,7 @@ dependencies {
     compile(project(':react-native-firebase')) {
         transitive = false
     }
-
-    compile(project(':react-native-firebase')) {
-        transitive = false
-      }
-
-      // Firebase dependencies
-      compile "com.google.android.gms:play-services-base:11.6.0"
-      compile "com.google.firebase:firebase-core:11.6.0"
-
-    compile "com.google.firebase:firebase-storage:11.6.0"
+    compile project(':react-native-image-resizer')
     compile project(':react-native-fetch-blob')
     compile project(':react-native-facebook-login')
     compile project(':react-native-vector-icons')
@@ -165,4 +167,3 @@ task copyDownloadableDepsToLibs(type: Copy) {
     into 'libs'
 }
 
-apply plugin: 'com.google.gms.google-services'

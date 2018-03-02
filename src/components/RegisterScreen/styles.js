@@ -1,15 +1,15 @@
 import { StyleSheet } from 'react-native';
 
 export default StyleSheet.create({
-   view: {
-       display: 'flex',
-       justifyContent: 'center',
-       alignItems: 'center',
-       width: '100%',
-       height: '100%',
-       paddingLeft: '10%',
-       paddingRight: '10%',
-   },
+    view: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+        paddingLeft: '10%',
+        paddingRight: '10%',
+    },
     inputText: {
         backgroundColor: 'white',
         width: '100%',
@@ -18,6 +18,13 @@ export default StyleSheet.create({
         marginBottom: 10,
         paddingLeft: 10,
         borderColor: 'transparent',
+        borderStyle: 'solid',
+        borderWidth: 1,
+        borderRadius: 2,
+    },
+    errorInput: {
+        backgroundColor: '#C2185B',
+        color: 'white'
     },
     item: {
         borderColor: 'transparent',
@@ -35,7 +42,7 @@ export default StyleSheet.create({
         justifyContent: 'flex-start',
     },
     listItem: {
-       borderColor: 'transparent',
+        borderColor: 'transparent',
     },
     radioListItem: {
         marginLeft: 0,

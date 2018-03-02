@@ -10,6 +10,13 @@ import {addUser} from '../../redux/actions';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
+const SERVER_URL = __DEV__ ?
+    Platform.select({
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
+    }) :
+    "https://quizapp-api.herokuapp.com";
+
 export default (CustomComponent) => {
     return connect(mapStateToProps, matchDispatchToProps)(class AuthHoC extends Component {
         constructor(props){
@@ -27,7 +34,7 @@ export default (CustomComponent) => {
                         user = JSON.parse(user);
                         if(user.id && user.userId){
                             const token = user.id;
-                            axios.get(`http://localhost:3000/api/Users/${user.userId}/accessTokens/${token}`)
+                            axios.get(`${SERVER_URL}/api/Users/${user.userId}/accessTokens/${token}`)
                                 .then((response)=>{
                                     console.info("VALID TOKEN", response);
                                     if(response.status == 200){

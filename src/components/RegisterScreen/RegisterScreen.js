@@ -5,11 +5,13 @@ import {
     View,
     AsyncStorage,
     TouchableHighlight,
-    Platform
+    Platform,
+    StatusBar,
 } from 'react-native';
 
 import {
-    addUser
+    addUser,
+    addRegisterDetails
 } from '../../redux/actions'
 import axios from 'axios';
 import { Actions } from 'react-native-router-flux';
@@ -28,10 +30,10 @@ import styles from './styles';
 
 const SERVER_URL = __DEV__ ?
     Platform.select({
-        ios: "http://localhost:3000",
-        android: "http://10.0.3.2:3000"
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
     }) :
-    "https://my-production-url.com";
+    "https://quizapp-api.herokuapp.com";
 
 
 class RegisterScreen extends Component {
@@ -39,183 +41,141 @@ class RegisterScreen extends Component {
         super(props);
         this.state = {
             email: '',
+            invalidEmail: false,
             password: '',
+            invalidPassword: false,
             confirmPass: '',
+            invalidConfirmPass: '',
             username: '',
-            gender: null,
-            city: '',
-            age: '',
-            phoneNumber: ''
+            invalidUsername: '',
         };
     }
 
-    handleRegister = () => {
-        const {addUser} = this.props;
-        const {email, password, confirmPass, username, gender, city, age, phoneNumber} = this.state;
-        if(email && password && confirmPass && password == confirmPass && username && gender && city && age && phoneNumber){
-            axios.post(`${SERVER_URL}/api/UserModels`, {
+    validateEmail = (email) => {
+        var re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    };
+
+    nextStep = () =>{
+        const {addRegisterDetails} = this.props;
+        const {email, password, confirmPass, username, invalidEmail, invalidPassword, invalidConfirmPass, invalidUsername} = this.state;
+        if(email && password && confirmPass && username && password === confirmPass && !invalidEmail && !invalidPassword && !invalidConfirmPass && !invalidUsername){
+            addRegisterDetails({
                 email,
                 password,
-                username,
-                gender,
-                city,
-                age,
-                phoneNumber,
-                emailVerified: false
-            }).then((response)=>{
-                console.info("RESPONSE", response);
-                if(response.status == 200 && response.data.id){
-                    axios.post(`${SERVER_URL}/api/UserModels/${response.data.id}/accessTokens`)
-                        .then((userResponse)=>{
-                            if(userResponse.status == 200){
-                                const userDetails = Object.assign({}, response.data, userResponse.data);
-                                AsyncStorage.setItem("quizUser", JSON.stringify(userDetails));
-                                addUser(response.data);
-                                Actions.push("content");
-                            }
-
-                        }).catch((error)=>{
-                        console.info("FETCH TOKEN ERROR", error);
-                    });
-                }
-            }).catch((error)=>{
-                console.info("ERROR", error);
+                username
+            }).then(()=>{
+                Actions.push("register-details");
             });
         }
     };
 
 
     render(){
-        const {email, password, confirmPass, username, city, gender, age, phoneNumber} = this.state;
+        const {email, password, confirmPass, username, invalidEmail, invalidPassword, invalidConfirmPass, invalidUsername} = this.state;
         return (
             <View style={styles.view}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor="#0096A6"
+                />
                 <Item style={styles.item}>
                     <Input
-                        placeholder="Username"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidUsername ? 'Korisnički račun, minimalno 4 karaktera' : 'Korisnički račun'}
+                        placeholderTextColor={invalidUsername ? 'white' : 'rgba(0,0,0,0.7)'}
+                        style={invalidUsername ? [styles.inputText, styles.errorInput] : styles.inputText}
                         value={username}
-                        style={styles.inputText}
                         onChangeText={(username) => {
-                            this.setState({
-                                username
-                            })
+                            if(username.length > 3){
+                                this.setState({
+                                    username,
+                                    invalidUsername: false
+                                })
+                            }
+                            else {
+                                this.setState({
+                                    username,
+                                    invalidUsername: true
+                                })
+                            }
                         }}
                     />
                 </Item>
                 <Item style={styles.item}>
                     <Input
-                        placeholder="Email"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidEmail ? 'Neispravan email' : 'Email'}
+                        placeholderTextColor={invalidEmail ? 'white' : 'rgba(0,0,0,0.7)'}
+                        style={invalidEmail ? [styles.inputText, styles.errorInput] : styles.inputText}
                         value={email}
-                        style={styles.inputText}
                         onChangeText={(email) => {
-                            this.setState({
-                                email: email.toLowerCase()
-                            })
+                            if(this.validateEmail(email.toLowerCase())){
+                                this.setState({
+                                    email: email.toLowerCase(),
+                                    invalidEmail: false
+                                });
+                            }
+                            else{
+                                this.setState({
+                                    email: email.toLowerCase(),
+                                    invalidEmail: true
+                                });
+                            }
                         }}
                     />
                 </Item>
+
                 <Item style={styles.item}>
                     <Input
-                        placeholder="Broj telefona"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
-                        value={phoneNumber}
-                        style={styles.inputText}
-                        onChangeText={(phoneNumber) => {
-                            this.setState({
-                                phoneNumber
-                            })
-                        }}
-                    />
-                </Item>
-                <Item style={styles.item}>
-                    <Input
-                        placeholder="Grad"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
-                        value={city}
-                        style={styles.inputText}
-                        onChangeText={(city) => {
-                            this.setState({
-                                city
-                            })
-                        }}
-                    />
-                </Item>
-                <Item style={styles.item}>
-                    <Input
-                        placeholder="Godište"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
-                        value={age}
-                        style={styles.inputText}
-                        onChangeText={(age) => {
-                            this.setState({
-                                age
-                            })
-                        }}
-                    />
-                </Item>
-                <Item style={styles.item}>
-                    <Input
-                        placeholder="Password"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidPassword ? 'Lozinka, minimalno 4 karaktera' : 'Lozinka'}
+                        placeholderTextColor={invalidPassword ? 'white' : 'rgba(0,0,0,0.7)'}
+                        style={invalidPassword ? [styles.inputText, styles.errorInput] : styles.inputText}
                         secureTextEntry={true}
                         value={password}
-                        style={styles.inputText}
                         onChangeText={(password) => {
-                            this.setState({
-                                password
-                            })
+                            if(password.length > 3){
+                                this.setState({
+                                    password,
+                                    invalidPassword: false
+                                })
+                            }
+                            else {
+                                this.setState({
+                                    password,
+                                    invalidPassword: true
+                                })
+                            }
                         }}
                     />
                 </Item>
                 <Item style={styles.item}>
                     <Input
-                        placeholder="Confirm password"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidConfirmPass ? 'Potvrda lozinke, neispravan unos' : 'Potvrdi lozinku'}
+                        placeholderTextColor={invalidConfirmPass ? 'white' : 'rgba(0,0,0,0.7)'}
+                        style={invalidConfirmPass ? [styles.inputText, styles.errorInput] : styles.inputText}
                         secureTextEntry={true}
                         value={confirmPass}
-                        style={styles.inputText}
                         onChangeText={(confirmPass) => {
-                            this.setState({
-                                confirmPass
-                            })
+                            if(confirmPass.length > 3 && confirmPass === this.state.password){
+                                this.setState({
+                                    confirmPass,
+                                    invalidConfirmPass: false,
+                                })
+                            }
+                            else {
+                                this.setState({
+                                    confirmPass,
+                                    invalidConfirmPass: true,
+                                })
+                            }
                         }}
                     />
                 </Item>
-                <View style={styles.radioView}>
-                    <ListItem
-                        style={styles.radioListItem}
-                        onPress={()=>{
-                            this.setState({
-                                gender: "musko"
-                            });
-                        }}
-                    >
-                        <Text>Muško</Text>
-                        <Right style={styles.right}>
-                            <Radio selected={gender === "musko" || false} />
-                        </Right>
-                    </ListItem>
-                    <ListItem
-                        style={styles.radioListItem}
-                        onPress={()=>{
-                            this.setState({
-                                gender: "zensko"
-                            });
-                        }}
-                    >
-                        <Text>Žensko</Text>
-                        <Right style={styles.right}>
-                            <Radio selected={gender === "zensko" || false} />
-                        </Right>
-                    </ListItem>
-                </View>
                 <Button
                     block
                     style={styles.button}
-                    onPress={this.handleRegister}
+                    onPress={this.nextStep}
                 >
-                    <Text>REGISTER</Text>
+                    <Text>NASTAVI DALJE</Text>
                 </Button>
                 <TouchableHighlight
                     onPress={()=>{
@@ -223,7 +183,7 @@ class RegisterScreen extends Component {
                     }}
                     style={styles.registerText}
                 >
-                    <Text>Login</Text>
+                    <Text>Prijavi se</Text>
                 </TouchableHighlight>
             </View>
         );
@@ -232,13 +192,14 @@ class RegisterScreen extends Component {
 
 function matchDispatchToProps(dispatch) {
     return bindActionCreators({
-        addUser
+        addUser,
+        addRegisterDetails
     },dispatch);
 }
 
 function mapStateToProps(state) {
     return {
-        socket: state.socket
+        socket: state.socket,
     }
 }
 

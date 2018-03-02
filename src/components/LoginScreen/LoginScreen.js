@@ -7,6 +7,7 @@ import {
     TouchableHighlight,
     AsyncStorage,
     Platform,
+    StatusBar
 } from 'react-native';
 
 import axios from 'axios';
@@ -26,25 +27,34 @@ import styles from './styles';
 
 const SERVER_URL = __DEV__ ?
     Platform.select({
-        ios: "http://localhost:3000",
-        android: "http://10.0.3.2:3000"
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
     }) :
-    "https://my-production-url.com";
+    "https://quizapp-api.herokuapp.com";
 
 class LoginScreen extends Component {
     constructor(props){
         super(props);
         this.state = {
             email: 'test@test.com',
+            //email: '',
             password: 'pass',
+            //password: '',
+            invalidEmail: false,
+            invalidPassword: false
         };
     }
+
+    validateEmail = (email) => {
+        var re = /\S+@\S+\.\S+/;
+        return re.test(email);
+    };
 
     handleLogin = () => {
         const {email, password} = this.state,
             {addUser} = this.props;
 
-        if(email && password){
+        if(email && this.validateEmail(email) && password && password.length >= 4){
             axios.post(`${SERVER_URL}/api/UserModels/login`, {
                 email,
                 password
@@ -62,18 +72,6 @@ class LoginScreen extends Component {
                     }).catch((error)=>{
                         console.info("GET ERROR", error);
                     });
-                    /*
-                    addLoginUser({
-                        id: response.data.userId,
-                        token: response.data.id
-                    });
-
-                    localStorage.setItem("quizApp", JSON.stringify({
-                        token: response.data.id,
-                        id: response.data.userId
-                    }));
-                    this.props.history.push("/");
-                    */
                 }
             }).catch((error)=>{
                 console.info("ERROR", error);
@@ -83,34 +81,56 @@ class LoginScreen extends Component {
 
 
     render(){
-        const {email, password} = this.state;
+        const {email, password, invalidEmail, invalidPassword} = this.state;
         return (
             <View style={styles.view}>
+                <StatusBar
+                    barStyle="light-content"
+                    backgroundColor="#0096A6"
+                />
                 <Item style={styles.item}>
                     <Input
                         name="email"
-                        placeholder="Email"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidEmail ? 'Neispravan email' : 'Email'}
+                        placeholderTextColor={invalidEmail ? 'white' : 'rgba(0,0,0,0.7)'}
                         value={email}
-                        style={styles.inputText}
+                        style={invalidEmail ? [styles.inputText, styles.errorInput] : styles.inputText}
                         onChangeText={(email) => {
-                            this.setState({
-                                email: email.toLowerCase()
-                            })
+                            if(this.validateEmail(email)){
+                                this.setState({
+                                    email: email.toLowerCase(),
+                                    invalidEmail: false
+                                })
+                            }
+                            else {
+                                this.setState({
+                                    email: email.toLowerCase(),
+                                    invalidEmail: true
+                                })
+                            }
                         }}
                     />
                 </Item>
                 <Item style={styles.item}>
                     <Input
-                        placeholder="password"
-                        placeholderTextColor="rgba(0,0,0,0.7)"
+                        placeholder={invalidPassword ? 'Lozinka, minimalno 4 karaktera' : 'Lozinka'}
+                        placeholderTextColor={invalidPassword ? 'white' : 'rgba(0,0,0,0.7)'}
                         secureTextEntry={true}
                         value={password}
-                        style={styles.inputText}
+                        style={invalidPassword ? [styles.inputText, styles.errorInput] : styles.inputText}
                         onChangeText={(password) => {
-                            this.setState({
-                                password
-                            })
+                            if(password.length > 3){
+                                this.setState({
+                                    password,
+                                    invalidPassword: false
+                                })
+                            }
+                            else {
+                                this.setState({
+                                    password,
+                                    invalidPassword: true
+                                })
+                            }
                         }}
                     />
                 </Item>
@@ -119,7 +139,7 @@ class LoginScreen extends Component {
                     style={styles.button}
                     onPress={this.handleLogin}
                 >
-                    <Text>LOGIN</Text>
+                    <Text>PRIJAVI SE</Text>
                 </Button>
 
                 <TouchableHighlight

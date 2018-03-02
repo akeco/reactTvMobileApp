@@ -2,40 +2,45 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-
+import ImageResizer from 'react-native-image-resizer';
+import Icon from 'react-native-vector-icons/Ionicons';
+import ImageGalleryModal from '../ImageGalleryModal';
 import RNFetchBlob from 'react-native-fetch-blob'
 const Blob = RNFetchBlob.polyfill.Blob;
 const fs = RNFetchBlob.fs;
 import axios from 'axios';
-window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
+//window.XMLHttpRequest = RNFetchBlob.polyfill.XMLHttpRequest;
 window.Blob = Blob;
-
+import {addAvatarURL} from '../../redux/actions'
 import {
     View,
     Modal,
-    StatusBar,
+    Platform,
     TouchableOpacity,
     ImageBackground,
     Image,
-    Platform
+    AsyncStorage
 } from 'react-native';
-import Icon from 'react-native-vector-icons/Ionicons';
-import ImageGalleryModal from '../ImageGalleryModal';
+
 import {
+    Container,
     List,
     ListItem,
     Left,
     Body,
-    Text
+    Text,
+    Spinner,
+    Header
 } from 'native-base';
+
 import styles from './styles';
 
 const API_URL = __DEV__ ?
     Platform.select({
-        ios: "http://localhost:3000",
-        android: "http://10.0.3.2:3000"
+        ios: "https://quizapp-api.herokuapp.com",
+        android: "https://quizapp-api.herokuapp.com"
     }) :
-    "https://my-production-url.com";
+    "https://quizapp-api.herokuapp.com";
 
 
 
@@ -43,12 +48,12 @@ class AccountModal extends Component {
     constructor(props){
         super(props);
         this.state = {
-            showGallery: false,
-            avatarURL: null
+            showGallery: false
         }
     }
 
     closeGalleryModal = () => {
+        console.info("HIDE");
         this.setState({
             showGallery: false
         });
@@ -56,71 +61,107 @@ class AccountModal extends Component {
 
     setAvatar = (avatarURL) => {
         this.uploadImage(avatarURL);
-
-        this.setState({
-            avatarURL
-        });
     };
 
 
     uploadImage = (uri, mime = 'image/jpg') => {
-        const {firebase, user} = this.props;
+        const {firebase, user, addAvatarURL} = this.props;
         let uploadBlob = null;
 
-        const imageRef = firebase.storage().ref('avatars').child(user.userId);
-        fs.readFile(uri, 'base64')
-            .then((data) => {
-                return Blob.build(data, { type: `${mime};BASE64` });
-            })
-            .then((blob) => {
-                uploadBlob = blob;
-                return imageRef.put(blob, { contentType: mime });
-            })
-            .then(() => {
-                uploadBlob.close();
-                return imageRef.getDownloadURL();
-            })
-            .then((url) => {
-                // URL of the image uploaded on Firebase storage
-                console.log(url);
-                axios.patch(`${API_URL}/api/UserModels/${user.userId}`, {
-                    avatarURL: url
-                }).then((response)=>{
-                    if(response.status == 200){
-                        console.info("image changed");
-                    }
-                }).catch((error)=>{
-                    console.info("image upload failed", error);
-                })
+        ImageResizer.createResizedImage(uri, 200, 200, 'JPEG', 99, 0, null).then((response) => {
+            // response.uri is the URI of the new image that can now be displayed, uploaded...
+            // response.path is the path of the new image
+            // response.name is the name of the new image with the extension
+            // response.size is the size of the new image
+            if(response && response.path){
+                const imageRef = firebase.storage().ref('avatars').child(user.userId);
+                fs.readFile(response.path, 'base64')
+                    .then((data) => {
+                        return Blob.build(data, { type: `${mime};BASE64` });
+                    })
+                    .then((blob) => {
+                        uploadBlob = blob;
+                        return imageRef.put(blob, { contentType: mime });
+                    })
+                    .then(() => {
+                        uploadBlob.close();
+                        return imageRef.getDownloadURL();
+                    })
+                    .then((url) => {
+                        // URL of the image uploaded on Firebase storage
+                        axios.patch(`${API_URL}/api/UserModels/${user.userId}`, {
+                            temporaryAvatarURL: url
+                        }).then((response)=>{
+                            if(response.status == 200){
+                                console.log("image changed", url);
+                                addAvatarURL({
+                                    url,
+                                    approved: false
+                                });
+                                AsyncStorage.getItem("quizUser").then((user)=>{
+                                    if(user){
+                                        user = JSON.parse(user);
+                                        if(user){
+                                            const userDetails = Object.assign({}, user, {
+                                                temporaryAvatarURL: url
+                                            });
+                                            AsyncStorage.setItem("quizUser", JSON.stringify(userDetails));
+                                        }
+                                    }
+                                }).catch((err)=>{
+                                    console.info("Save user to reducer error", err);
+                                });
+                            }
+                        }).catch((error)=>{
+                            console.info("image upload failed", error);
+                        })
 
-            })
-            .catch((error) => {
-                console.log(error);
-            })
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    })
+            }
+        }).catch((err) => {
+            // Oops, something went wrong. Check that the filename is correct and
+            // inspect err to get more details.
+            console.info("RESIZE error"+err);
+        });
     };
 
 
     render(){
-        const {closeAccountModal, AccountModalVisible, user} = this.props;
-        const {showGallery, avatarURL} = this.state;
+        const {closeAccountModal, AccountModalVisible, user, avatarURL} = this.props;
+        const {showGallery} = this.state;
+
         return (
             <Modal
                 visible={AccountModalVisible}
                 animationType={'slide'}
-                onRequestClose={this.closeJokerModal}
+                onRequestClose={closeAccountModal}
             >
+                <Header
+                    style={styles.header}
+                    iosBarStyle="light-content"
+                    androidStatusBarColor="#0096A6"
+                    backgroundColor="#00BBD3"
+                >
+                    <Left style={styles.leftIcon}>
+                        <TouchableOpacity onPress={closeAccountModal}>
+                            <Icon
+                                name={Platform.select({
+                                    ios: "ios-arrow-back",
+                                    android: "md-arrow-back"
+                                })}
+                                color="white" size={30}/>
+                        </TouchableOpacity>
+                    </Left>
+                    <Body style={styles.headerBody}>
+                        <Text style={styles.headerTitle}>KORISNIČKI RAČUN</Text>
+                    </Body>
+                </Header>
                 {
                     user && (
                         <View style={styles.view}>
-                            <StatusBar
-                                barStyle="light-content"
-                            />
-                            <View style={styles.statusBar} />
-                            <View style={styles.header}>
-                                <TouchableOpacity onPress={closeAccountModal}>
-                                    <Icon name="ios-arrow-back" color="white" size={35}></Icon>
-                                </TouchableOpacity>
-                            </View>
                             <ImageBackground
                                 style={styles.imageWrapper}
                                 resizeMode="cover"
@@ -130,8 +171,11 @@ class AccountModal extends Component {
                                     {
                                         avatarURL &&
                                             <View style={styles.avatarView}>
+                                                {
+                                                    !avatarURL.approved && <View style={styles.imageLoader} ><Spinner color='white' /></View>
+                                                }
                                                 <Image
-                                                    source={{uri: avatarURL}}
+                                                    source={{uri: avatarURL.url}}
                                                     style={styles.avatarImage}
                                                 />
                                             </View> ||
@@ -142,26 +186,26 @@ class AccountModal extends Component {
                             <List>
                                 <ListItem icon>
                                     <Left>
-                                        <Icon name="ios-contact-outline" size={30} />
+                                        <Icon style={styles.text} name="ios-contact-outline" size={25} />
                                     </Left>
                                     <Body>
-                                        <Text>{user.username}</Text>
+                                        <Text style={styles.text}>{user.username}</Text>
                                     </Body>
                                 </ListItem>
                                 <ListItem icon>
                                     <Left>
-                                        <Icon name="ios-at-outline" size={30} />
+                                        <Icon style={styles.text} name="ios-at-outline" size={25} />
                                     </Left>
                                     <Body>
-                                        <Text>{user.email}</Text>
+                                        <Text style={styles.text}>{user.email}</Text>
                                     </Body>
                                 </ListItem>
                                 <ListItem icon>
                                     <Left>
-                                        <Icon name="ios-phone-portrait-outline" size={30} />
+                                        <Icon style={styles.text} name="ios-call-outline" size={25} />
                                     </Left>
                                     <Body>
-                                        <Text>{user.phoneNumber}</Text>
+                                        <Text style={styles.text}>{user.phoneNumber}</Text>
                                     </Body>
                                 </ListItem>
                             </List>
@@ -169,7 +213,7 @@ class AccountModal extends Component {
                     )
                 }
                 {
-                    showGallery && <ImageGalleryModal
+                    <ImageGalleryModal
                         closeGalleryModal={this.closeGalleryModal}
                         showGallery={showGallery}
                         setAvatar={this.setAvatar}
@@ -182,19 +226,20 @@ class AccountModal extends Component {
 
 AccountModal.propTypes = {
     AccountModalVisible: PropTypes.bool.isRequired,
-    closeAccountModal: PropTypes.func.isRequired
+    closeAccountModal: PropTypes.func.isRequired,
 };
 
 function matchDispatchToProps(dispatch) {
     return bindActionCreators({
-
-    },dispatch);
+        addAvatarURL,
+    }, dispatch);
 }
 
 function mapStateToProps(state) {
     return {
         user: state.user,
-        firebase: state.firebase
+        firebase: state.firebase,
+        avatarURL: state.avatarURL
     }
 }
 

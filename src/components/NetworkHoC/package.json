@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "name": "NetworkHoC",
+  "main": "./NetworkHoC.js"
+}
